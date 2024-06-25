@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Collections - Home</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Task Collections</a>
+        <div class="ml-auto d-flex">
+            <button type="button" class="btn btn-outline-primary mr-2" data-toggle="modal" data-target="#loginModal">Login</button>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#registerModal">Register</button>
+        </div>
+    </nav>
+
+    <!-- Modals for Login and Register -->
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="login-form" onsubmit="login(event)">
+                        <div class="form-group">
+                            <label for="login-email">Email address</label>
+                            <input type="email" class="form-control" id="login-email" placeholder="Enter email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" class="form-control" id="login-password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <a href="#" class="btn btn-link">Forgot password?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="register-form" onsubmit="register(event)">
+                        <div class="form-group">
+                            <label for="register-email">Email address</label>
+                            <input type="email" class="form-control" id="register-email" placeholder="Enter email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-username">Username</label>
+                            <input type="text" class="form-control" id="register-username" placeholder="Username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input type="password" class="form-control" id="register-password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forms to create, edit, and delete collections and tasks (only visible if logged in) -->
+    <div id="collections-form" style="display: none;">
+        <h2>Create Collection</h2>
+        <form id="create-collection-form" onsubmit="createCollection(event)">
+            <div class="form-group">
+                <label for="collection-name">Collection Name</label>
+                <input type="text" class="form-control" id="collection-name" placeholder="Enter collection name" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Collection</button>
+        </form>
+    </div>
+
+    <div id="edit-collections-form" style="display: none;">
+        <h2>Edit Collection</h2>
+        <form id="edit-collection-form" onsubmit="editCollection(event)">
+            <div class="form-group">
+                <label for="edit-collection-name">New Collection Name</label>
+                <input type="text" class="form-control" id="edit-collection-name" placeholder="Enter new collection name" required>
+            </div>
+            <input type="hidden" id="edit-collection-id">
+            <button type="submit" class="btn btn-primary">Edit Collection</button>
+        </form>
+    </div>
+
+    <!-- List of Collections -->
+    <div id="collections-list" style="display: none;">
+        <h2>Your Collections</h2>
+        <ul id="collections-container" class="list-group">
+        </ul>
+    </div>
+
+    <!-- List of Tasks -->
+    <div id="tasks-list" style="display: none;">
+        <h2>Your Tasks</h2>
+        <ul id="tasks-container" class="list-group">
+        </ul>
+    </div>
+
+    <div id="tasks-form" style="display: none;">
+        <h2>Create Task</h2>
+        <form id="create-task-form" onsubmit="createTask(event)">
+            <div class="form-group">
+                <label for="task-name">Task Name</label>
+                <input type="text" class="form-control" id="task-name" placeholder="Enter task name" required>
+            </div>
+            <div class="form-group">
+                <label for="collections-id">Collection ID</label>
+                <input type="number" class="form-control" id="collections-id" placeholder="Enter collection ID" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Task</button>
+        </form>
+    </div>
+
+    <!-- Optional: JavaScript Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function login(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Welcome!');
+                    $('#loginModal').modal('hide');
+                    document.getElementById('collections-form').style.display = 'block';
+                    document.getElementById('edit-collections-form').style.display = 'block';
+                    document.getElementById('tasks-form').style.display = 'block';
+                    document.getElementById('collections-list').style.display = 'block';
+                    document.getElementById('tasks-list').style.display = 'block';
+                    fetchCollections(); // Fetch collections after login
+                } else {
+                    alert('Invalid email or password!');
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('Login failed');
+            }
+        }
+
+        async function register(event) {
+            event.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, username, password }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Registered successfully!');
+                    $('#registerModal').modal('hide');
+                } else {
+                    alert('Registration failed');
+                }
+            } catch (error) {
+                console.error('Error during registration:', error);
+                alert('Registration failed');
+            }
+        }
+
+        async function createCollection(event) {
+            event.preventDefault();
+            const name = document.getElementById('collection-name').value;
+
+            try {
+                const response = await fetch('/collections', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Collection created successfully!');
+                    fetchCollections(); // Fetch collections after creating a new one
+                } else {
+                    alert('Collection creation failed');
+                }
+            } catch (error) {
+                console.error('Error creating collection:', error);
+                alert('Collection creation failed');
+            }
+        }
+
+        async function editCollection(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-collection-id').value;
+            const name = document.getElementById('edit-collection-name').value;
+
+            try {
+                const response = await fetch(`/collections/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Collection updated successfully!');
+                    fetchCollections(); // Fetch collections after editing
+                } else {
+                    alert('Collection update failed');
+                }
+            } catch (error) {
+                console.error('Error updating collection:', error);
+                alert('Collection update failed');
+            }
+        }
+
+        async function deleteCollection(id) {
+            try {
+                const response = await fetch(`/collections/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Collection deleted successfully!');
+                    fetchCollections(); // Fetch collections after deleting
+                } else {
+                    alert('Collection deletion failed');
+                }
+            } catch (error) {
+                console.error('Error deleting collection:', error);
+                alert('Collection deletion failed');
+            }
+        }
+
+        async function deleteTask(id) {
+            try {
+                const response = await fetch(`/tasks/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Task deleted successfully!');
+                    fetchTasks(document.getElementById('edit-collection-id').value); // Fetch tasks after deleting
+                } else {
+                    alert('Task deletion failed');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                alert('Task deletion failed');
+            }
+        }
+
+        async function createTask(event) {
+            event.preventDefault();
+            const name = document.getElementById('task-name').value;
+            const collections_id = document.getElementById('collections-id').value;
+
+            try {
+                const response = await fetch('/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, collections_id }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Task created successfully!');
+                    fetchTasks(collections_id); // Fetch tasks after creating a new one
+                } else {
+                    alert('Task creation failed');
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                alert('Task creation failed');
+            }
+        }
+
+        async function fetchCollections() {
+            try {
+                const response = await fetch('/collections');
+                const collections = await response.json();
+                const collectionsContainer = document.getElementById('collections-container');
+                collectionsContainer.innerHTML = '';
+                collections.forEach(collection => {
+                    const collectionItem = document.createElement('li');
+                    collectionItem.classList.add('list-group-item');
+                    collectionItem.textContent = collection.name;
+                    collectionItem.setAttribute('data-id', collection.id);
+                    collectionItem.addEventListener('click', () => {
+                        fetchTasks(collection.id);
+                        document.getElementById('edit-collection-id').value = collection.id;
+                    });
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'float-right');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        deleteCollection(collection.id);
+                    });
+                    collectionItem.appendChild(deleteButton);
+
+                    collectionsContainer.appendChild(collectionItem);
+                });
+            } catch (error) {
+                console.error('Error fetching collections:', error);
+                alert('Failed to fetch collections');
+            }
+        }
+
+        async function fetchTasks(collectionId) {
+            try {
+                const response = await fetch(`/collections/${collectionId}/tasks`);
+                const tasks = await response.json();
+                const tasksContainer = document.getElementById('tasks-container');
+                tasksContainer.innerHTML = '';
+                tasks.forEach(task => {
+                    const taskItem = document.createElement('li');
+                    taskItem.classList.add('list-group-item');
+                    taskItem.textContent = task.name;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'float-right');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        deleteTask(task.id);
+                    });
+                    taskItem.appendChild(deleteButton);
+
+                    tasksContainer.appendChild(taskItem);
+                });
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                alert('Failed to fetch tasks');
+            }
+        }
+    </script>
+</body>
+</html>
